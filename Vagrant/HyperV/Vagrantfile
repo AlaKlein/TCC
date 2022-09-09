@@ -1,0 +1,23 @@
+Vagrant.configure("2") do |config|
+    config.vm.provider "hyperv" do |v|
+        config.vm.box = "centos/7"
+        v.ip_address_timeout = 240
+        v.memory = 2048
+        v.cpus = 2
+    end  
+
+    config.vm.define 'centosDB' do |node|
+        node.vm.provision :shell, path: "script.sh"
+        node.vm.provision "ansible" do |ansible|
+          ansible.playbook = "main.yml"
+        node.vm.provision "file", source: "main.yml", destination: "$HOME/vagrant"
+        end
+    end
+
+        config.vm.define 'centosDB' do |node|
+            node.vm.provision :shell, path: "script.sh"
+            node.vm.provision "ansible" do |ansible|
+                ansible.playbook = "main.yml"
+            end
+    end
+end

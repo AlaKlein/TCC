@@ -1,0 +1,9 @@
+az login
+
+terraform.exe init
+
+terraform.exe plan
+
+terraform.exe apply
+
+terraform destroy

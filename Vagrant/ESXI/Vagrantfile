@@ -1,0 +1,39 @@
+#
+#  Fully documented Vagrantfile available
+#  in the wiki:  https://github.com/josenk/vagrant-vmware-esxi/wiki
+Vagrant.configure('2') do |config|
+
+config.vm.synced_folder('.', '/vagrant', type: 'nfs', disabled: true)
+
+config.vm.provider :vmware_esxi do |esxi|
+
+    esxi.esxi_hostname = '192.168.1.5'
+    esxi.esxi_username = 'root'
+	  esxi.esxi_password = '123mudar*'
+    esxi.esxi_disk_store = 'DS'
+
+    #VM
+    esxi.guest_name = 'Vagrant-CentOS-7'
+    esxi.guest_numvcpus = '2'
+    esxi.guest_memsize = '2048'
+
+
+  end
+
+  config.vm.box = 'centos/7'
+  
+      config.vm.define 'centosDB' do |node|
+        node.vm.provision :shell, path: "script.sh"
+        node.vm.provision "ansible" do |ansible|
+          ansible.playbook = "main.yml"
+        node.vm.provision "file", source: "main.yml", destination: "$HOME/vagrant"
+        end
+    end
+	
+	config.vm.define 'centosDB' do |node|
+            node.vm.provision :shell, path: "script.sh"
+            node.vm.provision "ansible" do |ansible|
+                ansible.playbook = "main.yml"
+            end     
+  end
+end
