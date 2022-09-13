@@ -14,4 +14,7 @@
 #files
 *.exe
 id_rsa
+*.vhd
+*.vhdx
+*.vmdk
 

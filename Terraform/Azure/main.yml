@@ -7,10 +7,12 @@
       - name: Enable EPEL Repository on CentOS 7
         yum:
           name: epel-release
-          state: latest      
+          state: latest
 
-      - name: upgrade all packages
-        yum: name=* state=latest
+      #- name: upgrade all packages
+      #  yum: name=* state=latest
+      - name: install updates
+        yum: update_cache=yes
 
       - name: Install MariaDB
         yum:

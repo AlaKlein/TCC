@@ -1,0 +1,4 @@
+vm ansible_ssh_host={host} ansible_ssh_user=azureuser ansible_ssh_pass=Admin12345678 ansible_sudo_pass=Admin12345678
+
+[all]
+vm
