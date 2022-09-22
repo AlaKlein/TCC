@@ -35,8 +35,9 @@ resource "vsphere_virtual_machine" "virtualmachine" {
     path         = var.custom_iso_path
   }
   disk {
+    template = "template"
     size             = var.disk_size
-    label            = "first-disk.vmdk"
+    #label            = "first-disk.vmdk"
     eagerly_scrub    = false
     thin_provisioned = true
   }

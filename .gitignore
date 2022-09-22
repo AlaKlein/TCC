@@ -17,4 +17,4 @@ id_rsa
 *.vhd
 *.vhdx
 *.vmdk
-
+*.cert

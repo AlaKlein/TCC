@@ -7,16 +7,22 @@
       - name: Enable EPEL Repository on CentOS 7
         yum:
           name: epel-release
-          state: latest      
+          state: latest
 
-      - name: upgrade all packages
-        yum: name=* state=latest
+      - name: install updates
+        yum: update_cache=yes
+
+      - name: install maven
+        yum: 
+          name: maven
+          state: latest
 
       - name: Install MariaDB
         yum:
           name: 
           - mariadb-server
           - python3-PyMySQL
+          - MySQL-python
           state: latest
 
       - name: Start MariaDB
@@ -24,6 +30,40 @@
           name: mariadb
           enabled: true
           state: started
+
+      - name: Install git
+        yum:
+          name: git
+          state: present
+          update_cache: yes
+
+      - name: Clone a github repository
+        git:
+          repo: https://github.com/AlaKlein/Help-Desk.git
+          dest: /usr/local/help-desk
+          clone: yes
+          update: yes
+
+      - name: Create database user with password and all database privileges and 'WITH GRANT OPTION'
+        mysql_user:
+          name: admin
+          password: admin
+          priv: '*.*:ALL,GRANT'
+          state: present
+
+      - name: 'Create database'
+        mysql_db: 
+          name: TicketSystem
+          state: present
+          login_user: admin
+          login_password: admin
+          login_host: localhost
+
+      - name: Restore database
+        mysql_db:
+          name: TicketSystem
+          state: import
+          target: /usr/local/help-desk/dump-ticketsystem-202106231058.sql
 
       - name: Install Java
         yum: 
@@ -41,23 +81,17 @@
           dest: /usr/local
           remote_src: yes
 
-      - name: Install git
-        yum:
-          name: git
-          state: present
-          update_cache: yes
-
-      - name: Clone a github repository
-        git:
-          repo: https://github.com/AlaKlein/Help-Desk.git
-          dest: /usr/local/git
-          clone: yes
-          update: yes
+      - name: Creates directory
+        file:
+          path: /usr/local/apache-tomcat-10.0.21/conf/Catalina/localhost
+          state: directory
 
       - name: copy src.txt as dest.txt in the same dir 
         copy:
-          src: /usr/local/git/src/main/webapp/
-          dest: /usr/local/apache-tomcat-10.0.21/webapps/ROOT
+          #src: /usr/local/git/src/main/webapp/
+          #dest: /usr/local/apache-tomcat-10.0.21/webapps/ROOT
+          src: /usr/local/help-desk/tomcat_conf/
+          dest: /usr/local/apache-tomcat-10.0.21/conf/Catalina/localhost
           remote_src: yes
         tags:
           - simple_copy
@@ -65,24 +99,12 @@
       - name: start tomcat services
         shell: nohup /usr/local/apache-tomcat-10.0.21/bin/startup.sh
 
-      
-
-
-      
-
-
-
-
-      
-
-        
-        
-
-
-
-    
-
-
-
-
-    
+      - name: Configure Maven Server
+        lineinfile:
+          insertafter: <servers>
+          line: <server>    
+                <id>Tomcat10</id>
+                <username>admin</username>
+                <password>admin</password>
+                </server>
+          path: /etc/maven/settings.xml

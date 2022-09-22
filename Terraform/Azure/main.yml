@@ -66,25 +66,3 @@
 
       - name: start tomcat services
         shell: nohup /usr/local/apache-tomcat-10.0.21/bin/startup.sh
-
-      
-
-
-      
-
-
-
-
-      
-
-        
-        
-
-
-
-    
-
-
-
-
-    
