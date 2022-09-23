@@ -1,5 +1,5 @@
 ---
-  - name: MariaDB auto-install
+  - name: HelpDesk automatic deploy
     hosts: all
     become: yes
     become_user: root
@@ -9,16 +9,20 @@
           name: epel-release
           state: latest
 
-      #- name: upgrade all packages
-      #  yum: name=* state=latest
-      - name: install updates
+      - name: update cache
         yum: update_cache=yes
 
-      - name: Install MariaDB
+      - name: install Maven
+        yum: 
+          name: maven
+          state: latest
+
+      - name: Install MariaDB | PyMySQL | MySQL-python
         yum:
           name: 
           - mariadb-server
           - python3-PyMySQL
+          - MySQL-python
           state: latest
 
       - name: Start MariaDB
@@ -27,10 +31,39 @@
           enabled: true
           state: started
 
-      - name: Install Java
-        yum: 
-          name: java-11-openjdk-devel 
+      - name: Install git
+        yum:
+          name: git
           state: present
+          update_cache: yes
+
+      - name: Clone a github repository
+        git:
+          repo: https://github.com/AlaKlein/Help-Desk.git
+          dest: /usr/local/help-desk
+          clone: yes
+          update: yes
+
+      - name: Create database user
+        mysql_user:
+          name: admin
+          password: admin
+          priv: '*.*:ALL,GRANT'
+          state: present
+
+      - name: Create database
+        mysql_db: 
+          name: TicketSystem
+          state: present
+          login_user: admin
+          login_password: admin
+          login_host: localhost
+
+      - name: Restore database
+        mysql_db:
+          name: TicketSystem
+          state: import
+          target: /usr/local/help-desk/dump-ticketsystem-202106231058.sql
 
       - name: download tomcat server packages
         get_url:
@@ -43,26 +76,28 @@
           dest: /usr/local
           remote_src: yes
 
-      - name: Install git
-        yum:
-          name: git
-          state: present
-          update_cache: yes
-
-      - name: Clone a github repository
-        git:
-          repo: https://github.com/AlaKlein/Help-Desk.git
-          dest: /usr/local/git
-          clone: yes
-          update: yes
-
-      - name: copy src.txt as dest.txt in the same dir 
-        copy:
-          src: /usr/local/git/src/main/webapp/
-          dest: /usr/local/apache-tomcat-10.0.21/webapps/ROOT
-          remote_src: yes
-        tags:
-          - simple_copy
-
       - name: start tomcat services
         shell: nohup /usr/local/apache-tomcat-10.0.21/bin/startup.sh
+
+      - name: Configure Maven Server
+        lineinfile:
+          insertafter: <servers>
+          line: <server>    
+                <id>Tomcat10</id>
+                <username>admin</username>
+                <password>admin</password>
+                </server>
+          path: /etc/maven/settings.xml
+      
+      - name: Configure Tomcat Users XML
+        lineinfile:
+          insertbefore: </tomcat-users>
+          line: <role rolename="manager-gui"/>
+                <role rolename="manager-script"/>
+                <user username="admin" password="admin" roles="manager-gui,manager-script" />
+          path: /usr/local/apache-tomcat-10.0.21/conf/tomcat-users.xml
+
+      - name: Run maven tomcat deploy
+        shell: mvn tomcat7:deploy
+        args:
+          chdir: /usr/local/help-desk
