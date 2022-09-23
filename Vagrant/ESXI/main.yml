@@ -1,5 +1,5 @@
 ---
-  - name: MariaDB auto-install
+  - name: HelpDesk automatic deploy
     hosts: all
     become: yes
     become_user: root
@@ -9,15 +9,15 @@
           name: epel-release
           state: latest
 
-      - name: install updates
+      - name: update cache
         yum: update_cache=yes
 
-      - name: install maven
+      - name: install Maven
         yum: 
           name: maven
           state: latest
 
-      - name: Install MariaDB
+      - name: Install MariaDB | PyMySQL | MySQL-python
         yum:
           name: 
           - mariadb-server
@@ -44,14 +44,14 @@
           clone: yes
           update: yes
 
-      - name: Create database user with password and all database privileges and 'WITH GRANT OPTION'
+      - name: Create database user
         mysql_user:
           name: admin
           password: admin
           priv: '*.*:ALL,GRANT'
           state: present
 
-      - name: 'Create database'
+      - name: Create database
         mysql_db: 
           name: TicketSystem
           state: present
@@ -65,11 +65,6 @@
           state: import
           target: /usr/local/help-desk/dump-ticketsystem-202106231058.sql
 
-      - name: Install Java
-        yum: 
-          name: java-11-openjdk-devel 
-          state: present
-
       - name: download tomcat server packages
         get_url:
           url: https://archive.apache.org/dist/tomcat/tomcat-10/v10.0.21/bin/apache-tomcat-10.0.21.tar.gz
@@ -80,21 +75,6 @@
           src: /usr/local/apache-tomcat-10.0.21.tar.gz
           dest: /usr/local
           remote_src: yes
-
-      - name: Creates directory
-        file:
-          path: /usr/local/apache-tomcat-10.0.21/conf/Catalina/localhost
-          state: directory
-
-      - name: copy src.txt as dest.txt in the same dir 
-        copy:
-          #src: /usr/local/git/src/main/webapp/
-          #dest: /usr/local/apache-tomcat-10.0.21/webapps/ROOT
-          src: /usr/local/help-desk/tomcat_conf/
-          dest: /usr/local/apache-tomcat-10.0.21/conf/Catalina/localhost
-          remote_src: yes
-        tags:
-          - simple_copy
 
       - name: start tomcat services
         shell: nohup /usr/local/apache-tomcat-10.0.21/bin/startup.sh
@@ -108,3 +88,16 @@
                 <password>admin</password>
                 </server>
           path: /etc/maven/settings.xml
+      
+      - name: Configure Tomcat Users XML
+        lineinfile:
+          insertbefore: </tomcat-users>
+          line: <role rolename="manager-gui"/>
+                <role rolename="manager-script"/>
+                <user username="admin" password="admin" roles="manager-gui,manager-script" />
+          path: /usr/local/apache-tomcat-10.0.21/conf/tomcat-users.xml
+
+      #- name: Run maven tomcat deploy
+      #  shell: mvn tomcat7:deploy
+      # args:
+      #    chdir: /usr/local/help-desk

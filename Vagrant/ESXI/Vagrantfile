@@ -23,12 +23,7 @@ config.vm.provider :vmware_esxi do |esxi|
         node.vm.provision "ansible" do |ansible|
           ansible.playbook = "main.yml"
         node.vm.provision "file", source: "main.yml", destination: "$HOME/vagrant"
+        node.vm.provision :shell, path: "script.sh"
         end
     end
-	
-	config.vm.define 'centos' do |node|
-            node.vm.provision "ansible" do |ansible|
-                ansible.playbook = "main.yml"
-            end     
-  end
 end
