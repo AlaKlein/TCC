@@ -11,6 +11,24 @@ data "vsphere_network" "networking" {
   name          = var.mgmt_lan
   datacenter_id = data.vsphere_datacenter.datacenter.id
 }
+
+# Data source for the OVF to read the required OVF Properties
+data "vsphere_ovf_vm_template" "ovfLocal" {
+  name             = var.vm_name
+  resource_pool_id = data.vsphere_resource_pool.pool.id
+  datastore_id     = data.vsphere_datastore.datastore.id
+  #host_system_id   = data.vsphere_host.host.id
+  local_ovf_path   = var.local_ovf_path
+  }
+
+ovf_deploy {
+    allow_unverified_ssl_cert = true
+    local_ovf_path            = var.local_ovf_path
+    disk_provisioning         = "thin"
+    deployment_option         = var.deployment_option
+ 
+  }
+
 resource "vsphere_virtual_machine" "virtualmachine" {
   count                      = var.vm_count
   name                       = "${var.name_new_vm}-${count.index + 1}"

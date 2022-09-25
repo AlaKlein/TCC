@@ -17,6 +17,9 @@ variable "guest_id" {
 variable "custom_iso_path" {
   default = "ISO/Bob.Ombs.Modified.Win10PEx64.v4.6.ISO"
 }
+variable "local_ovf_path" { 
+  default = "OVF/centos-7-1-1.x86_64.ovf" 
+}
 variable "vm_count" {
   default = "1"
 }

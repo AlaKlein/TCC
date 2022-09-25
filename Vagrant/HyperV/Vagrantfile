@@ -4,7 +4,7 @@ Vagrant.configure("2") do |config|
         #VM
         config.vm.box = "centos/7"
         v.vmname = "Vagrant-CentOS-7"
-        v.ip_address_timeout = 240
+        #v.ip_address_timeout = 240
         v.memory = 2048
         v.cpus = 2
     end  
@@ -12,9 +12,9 @@ Vagrant.configure("2") do |config|
     #Provision
     config.vm.define 'centos' do |node|
         node.vm.provision "ansible" do |ansible|
-          ansible.playbook = "main.yml"
+          ansible.playbook = "/mnt/c/Users/Klein/Desktop/TCC/Ansible.yml"
         node.vm.provision "file", source: "main.yml", destination: "$HOME/vagrant"
-        node.vm.provision :shell, path: "script.sh"
+        #node.vm.provision :shell, path: "script.sh"
         end
     end
 end

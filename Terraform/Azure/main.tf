@@ -188,7 +188,7 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
   }
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./main.yml -i ./inventory"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml -i ./inventory"
   }
 
   #provisioner "local-exec" {

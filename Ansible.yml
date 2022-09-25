@@ -102,4 +102,7 @@
         args:
           chdir: /usr/local/help-desk
 
-      - debug: var=hostvars[inventory_hostname]['ansible_default_ipv4']['address']
+      - name: Print HelpDesk Url
+        ansible.builtin.debug:
+          msg: http://{{ ansible_default_ipv4.address }}:8080/HelpDesk
+
