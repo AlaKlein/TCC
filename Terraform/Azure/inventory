@@ -1,4 +1,4 @@
-vm ansible_ssh_host=20.160.128.202 ansible_ssh_user=azureuser ansible_ssh_pass=Admin12345678 ansible_sudo_pass=Admin12345678
+vm ansible_ssh_host=20.197.194.59 ansible_ssh_user=azureuser ansible_ssh_pass=Admin12345678 ansible_sudo_pass=Admin12345678
 
 [all]
 vm

@@ -122,12 +122,6 @@ resource "azurerm_storage_account" "storage" {
   }
 }
 
-# Create (and display) an SSH key
-#resource "tls_private_key" "example_ssh" {
-#  algorithm = "RSA"
-#  rsa_bits  = 4096
-#}
-
 # Create virtual machine
 resource "azurerm_linux_virtual_machine" "linuxvm" {
   name                  = var.linux_virtual_machine_name
@@ -142,28 +136,12 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
     storage_account_type = "Premium_LRS"
   }
 
-  #source_image_reference {
-    #publisher = "Canonical"
-    #offer     = "UbuntuServer"
-    #sku       = "18.04-LTS"
-    #version   = "latest"
-  #}
-
   source_image_reference {
     publisher = "OpenLogic"
     offer     = "CentOS"
     sku       = "7.5"
     version   = "latest"
   }
-
-  #computer_name                   = "myvm"
-  #admin_username                  = "azureuser"
-  #disable_password_authentication = true
-
-  #admin_ssh_key {
-  #  username   = "azureuser"
-  #  public_key = tls_private_key.example_ssh.public_key_openssh
-  #}
 
     computer_name  = "AzureCentOS7"
     admin_username = "azureuser"
@@ -182,17 +160,15 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
     command = "./dynamicinventory.sh"
   }
 
+  #Copy VM IP Address to local file, so Ansible can use it to access the VM
   provisioner "local-exec" {
-    #command = "sleep 180;sed -i 's/{host}/${azurerm_linux_virtual_machine.linuxvm.public_ip_address}/g' ./inventory"
     command = "sed -i 's/{host}/${azurerm_linux_virtual_machine.linuxvm.public_ip_address}/g' ./inventory"
   }
 
+  #Run Ansible Playbook
   provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml -i ./inventory"
   }
 
-  #provisioner "local-exec" {
-  #  command = "ansible-playbook -u azureuser -i '${self.public_ip},' --private-key ${var.ssh_key_private} provision.yml" 
-  #}
 }
 
