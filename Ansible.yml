@@ -45,6 +45,7 @@
           update: yes
 
       - name: Create database user
+        no_log: true
         mysql_user:
           name: admin
           password: admin

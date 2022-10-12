@@ -8,7 +8,7 @@ config.vm.provider :vmware_esxi do |esxi|
     esxi.esxi_hostname = '192.168.1.5'
     esxi.esxi_username = 'root'
 	  esxi.esxi_password = '123mudar*'
-    esxi.esxi_disk_store = 'DS'
+    esxi.esxi_disk_store = 'datastore1'
 
     #VM
     esxi.guest_name = 'Vagrant-CentOS-7'
@@ -18,12 +18,9 @@ config.vm.provider :vmware_esxi do |esxi|
 
   #Provision
   config.vm.box = 'centos/7'
-  
       config.vm.define 'centos' do |node|
         node.vm.provision "ansible" do |ansible|
           ansible.playbook = "/mnt/c/Users/Klein/Desktop/TCC/Ansible.yml"
-        node.vm.provision "file", source: "main.yml", destination: "$HOME/vagrant"
-        #node.vm.provision :shell, path: "script.sh"
         end
     end
 end

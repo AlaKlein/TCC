@@ -1,4 +1,0 @@
-terraform output -raw tls_private_key > cert.key
-terraform output -raw vm_ip
-chmod 600 cert.key
-linux new# ssh -i cert.key azureuser@
