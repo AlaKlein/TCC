@@ -12,30 +12,27 @@
       - name: update cache
         yum: update_cache=yes
 
-      - name: install Maven
-        yum: 
-          name: maven
-          state: latest
-
-      - name: Install MariaDB | PyMySQL | MySQL-python
+      - name: Install MariaDB | MySQL-python | Git | Maven
         yum:
           name: 
           - mariadb-server
-          - python3-PyMySQL
           - MySQL-python
+          - git 
+          - maven
           state: latest
+
+      - name: Clone a github repository
+        git:
+          repo: https://github.com/AlaKlein/Help-Desk.git
+          dest: /usr/local/help-desk
+          clone: yes
+          update: yes
 
       - name: Start MariaDB
         service:
           name: mariadb
           enabled: true
           state: started
-
-      - name: Install git
-        yum:
-          name: git
-          state: present
-          update_cache: yes
 
       - name: Clone a github repository
         git:
