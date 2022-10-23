@@ -1,32 +1,26 @@
-
-terraform {
-  required_providers {
-    google = {
-      source = "hashicorp/google"
-      version = "3.5.0"
-    }
-  }
-}
-
-provider "google" {
-  credentials = file("credentials.json")
-  project = "tcc2-366316"
-  region  = "southamerica-east1"
-  zone    = "southamerica-east1-a"
-}
-
 resource "google_compute_firewall" "default" {
     name    = "web-firewall"
     network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["8080", "22"]
+    ports    = ["22", "8080"]
   }
 
   source_ranges = ["0.0.0.0/0"]
   target_tags = ["vm"]
   }
+
+  resource "tls_private_key" "ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+  resource "local_file" "ssh_private_key_pem" {
+  content         = tls_private_key.ssh.private_key_pem
+  filename        = "id_rsa"
+  file_permission = "0400"
+}
 
 resource "google_compute_instance" "GCP-VM" {
   name         = "terraform-centos"
@@ -48,22 +42,11 @@ resource "google_compute_instance" "GCP-VM" {
     }
   }
 
-  #Add ssh key to VM
-  metadata = {
-    ssh-keys = "ala_klein:${file(var.ssh_public_key_filepath)}"
+  metadata = { #Add ssh key to VM
+    ssh-keys = "ala_klein:${tls_private_key.ssh.public_key_openssh}"
   }
 
-  provisioner "local-exec" {
-    command = "./dynamicinventory.sh"
-  }
-
-  #Copy VM IP Address to local file, so Ansible can use it to access the VM
-  provisioner "local-exec" {
-    command = "sed -i 's/{host}/${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip}/g' ./inventory"
-  }
-
-  #Run Ansible Playbook
-  provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml -i ./inventory"
+  provisioner "local-exec" { #Provision application with Ansible
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip} ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
   }
 }

@@ -1,4 +1,0 @@
-vm ansible_ssh_host=34.95.203.228 ansible_ssh_user=ala_klein ansible_ssh_private_key_file=/mnt/c/Users/Klein/Desktop/TCC/Terraform/GCloud/id_rsa
-
-[all]
-vm

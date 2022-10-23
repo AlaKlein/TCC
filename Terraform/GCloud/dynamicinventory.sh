@@ -1,1 +1,0 @@
-cp ./inventory.backup ./inventory 
