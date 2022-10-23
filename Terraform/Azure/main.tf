@@ -1,47 +1,30 @@
-# Create a resource group if it doesn't exist
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "rg" { #Create a resource group
   name     = var.resource_group_name
   location = var.resource_group_location
-
-  tags = {
-    environment = "production"
-  }
 }
 
-# Create virtual network
-resource "azurerm_virtual_network" "vnet" {
+resource "azurerm_virtual_network" "vnet" { #Create virtual network
   name                = var.virtual_network_name
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-
-  tags = {
-    environment = "production"
-  }
 }
 
-# Create subnet
-resource "azurerm_subnet" "subnet" {
+resource "azurerm_subnet" "subnet" { #Create subnet
   name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Create public IPs
-resource "azurerm_public_ip" "public_ip" {
+resource "azurerm_public_ip" "public_ip" { #Create public IP
   name                = var.public_ip_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
-
-  tags = {
-    environment = "production"
-  }
 }
 
-# Create Network Security Group and rule
-resource "azurerm_network_security_group" "nsg" {
+resource "azurerm_network_security_group" "nsg" { #Create Network Security Group and rules
   name                = var.network_security_group_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -69,14 +52,9 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-
-  tags = {
-    environment = "production"
-  }
 }
 
-# Create network interface
-resource "azurerm_network_interface" "nic" {
+resource "azurerm_network_interface" "nic" { #Create network interface
   name                = var.network_interface_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -87,48 +65,47 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
-
-  tags = {
-    environment = "production"
-  }
 }
 
-# Connect the security group to the network interface
-resource "azurerm_network_interface_security_group_association" "association" {
+resource "azurerm_network_interface_security_group_association" "association" { #Connect the security group to the network interface
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# Generate random text for a unique storage account name
-resource "random_id" "randomId" {
-  keepers = {
-    # Generate a new ID only when a new resource group is defined
+resource "random_id" "randomId" { #Generate random text for a unique storage account name
+  keepers = { #Generate a new ID only when a new resource group is defined
     resource_group = azurerm_resource_group.rg.name
   }
-
   byte_length = 8
 }
 
-# Create storage account for boot diagnostics
-resource "azurerm_storage_account" "storage" {
+resource "azurerm_storage_account" "storage" { #Create storage account for boot diagnostics
   name                     = "diag${random_id.randomId.hex}"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags = {
-    environment = "production"
-  }
 }
 
-# Create virtual machine
-resource "azurerm_linux_virtual_machine" "linuxvm" {
+resource "tls_private_key" "ssh_key" { #Create storage account for boot diagnostics
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "id_rsa" { #Save Private Key to Directory
+  filename = "id_rsa"
+  content=tls_private_key.ssh_key.private_key_pem
+  file_permission = "0400"
+}
+
+resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   name                  = var.linux_virtual_machine_name
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
   size                  = "Standard_DS1_v2"
+  admin_username        = "azureuser"
 
   os_disk {
     name                 = "myOsDisk"
@@ -136,39 +113,20 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
+  source_image_reference {  #Choose OS Image
     publisher = "OpenLogic"
     offer     = "CentOS"
     sku       = "7.5"
     version   = "latest"
   }
 
-    computer_name  = "AzureCentOS7"
-    admin_username = "azureuser"
-    admin_password = "Admin12345678"
-    disable_password_authentication = false
-
-  boot_diagnostics {
-    storage_account_uri = azurerm_storage_account.storage.primary_blob_endpoint
+    admin_ssh_key { #Add SSH Key to VM
+    username   = "azureuser"
+    public_key = tls_private_key.ssh_key.public_key_openssh
   }
 
-  tags = {
-    environment = "production"
+  provisioner "local-exec" { #Provision application with Ansible
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u azureuser -i '${azurerm_linux_virtual_machine.linuxvm.public_ip_address},' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
   }
-
-  provisioner "local-exec" {
-    command = "./dynamicinventory.sh"
-  }
-
-  #Copy VM IP Address to local file, so Ansible can use it to access the VM
-  provisioner "local-exec" {
-    command = "sed -i 's/{host}/${azurerm_linux_virtual_machine.linuxvm.public_ip_address}/g' ./inventory"
-  }
-
-  #Run Ansible Playbook
-  provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml -i ./inventory"
-  }
-
 }
 
