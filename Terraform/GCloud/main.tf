@@ -1,44 +1,43 @@
-resource "google_compute_firewall" "default" {
+resource "google_compute_firewall" "default" { #Create a firewall
     name    = "web-firewall"
     network = "default"
 
-  allow {
+  allow { #Allow access to ports TCP 22(SSH) and 8080(Tomcat) 
     protocol = "tcp"
     ports    = ["22", "8080"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
-  target_tags = ["vm"]
+  source_ranges = ["0.0.0.0/0"] #Specify allowed addresses
+  target_tags = ["vm"] #Specify VM
   }
 
-  resource "tls_private_key" "ssh" {
+  resource "tls_private_key" "ssh" { #Create SSH Key
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-  resource "local_file" "ssh_private_key_pem" {
+  resource "local_file" "ssh_private_key_pem" { #Save key to project directory
   content         = tls_private_key.ssh.private_key_pem
   filename        = "id_rsa"
   file_permission = "0400"
 }
 
-resource "google_compute_instance" "GCP-VM" {
+resource "google_compute_instance" "GCP-VM" { #Create VM
   name         = "terraform-centos"
   machine_type = "t2d-standard-2"
   zone         = "southamerica-east1-a"
   tags = ["vm"]
 
   boot_disk {
-    initialize_params {
+    initialize_params { #Choose OS image
       image = "centos-cloud/centos-7"
     }
   }
 
-  network_interface {
+  network_interface { #GCP can use a default network setting
     network = "default"
 
-    access_config {
-      // Ephemeral public IP
+    access_config { #Create public IP
     }
   }
 
