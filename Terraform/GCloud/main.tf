@@ -1,4 +1,4 @@
-resource "google_compute_firewall" "default" { #Create a firewall
+resource "google_compute_firewall" "firewall" { #Create a firewall
     name    = "web-firewall"
     network = "default"
 
@@ -24,7 +24,7 @@ resource "google_compute_firewall" "default" { #Create a firewall
 
 resource "google_compute_instance" "GCP-VM" { #Create VM
   name         = "terraform-centos"
-  machine_type = "t2d-standard-2"
+  machine_type = "n2-standard-2" #t2d-standard-2
   zone         = "southamerica-east1-a"
   tags = ["vm"]
 
@@ -46,6 +46,6 @@ resource "google_compute_instance" "GCP-VM" { #Create VM
   }
 
   provisioner "local-exec" { #Provision application with Ansible
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip} ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
+    command = "sleep 10; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip} ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml"
   }
 }

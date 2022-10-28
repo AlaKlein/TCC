@@ -104,8 +104,8 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  size                  = "Standard_DS1_v2"
-  admin_username        = "azureuser"
+  size                  = "Standard_B2ms"
+  admin_username        = "ala_klein"
 
   os_disk {
     name                 = "myOsDisk"
@@ -116,17 +116,17 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   source_image_reference {  #Choose OS Image
     publisher = "OpenLogic"
     offer     = "CentOS"
-    sku       = "7.5"
+    sku       = "7_9"
     version   = "latest"
   }
 
     admin_ssh_key { #Add SSH Key to VM
-    username   = "azureuser"
+    username   = "ala_klein"
     public_key = tls_private_key.ssh_key.public_key_openssh
   }
 
   provisioner "local-exec" { #Provision application with Ansible
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u azureuser -i '${azurerm_linux_virtual_machine.linuxvm.public_ip_address},' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${azurerm_linux_virtual_machine.linuxvm.public_ip_address},' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
   }
 }
 
