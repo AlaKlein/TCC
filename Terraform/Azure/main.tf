@@ -125,6 +125,14 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
     public_key = tls_private_key.ssh_key.public_key_openssh
   }
 
+  provisioner "local-exec" { #Prepare file "Redeploy" to receive VM IP
+    command = "./dynamicRedeploy.sh"
+  }
+
+  provisioner "local-exec" { #Save VM IP to "Redepoy" file
+    command = "sed -i 's/{host}/${azurerm_linux_virtual_machine.linuxvm.public_ip_address}/g' ./Redeploy"
+  }
+
   provisioner "local-exec" { #Provision application with Ansible
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${azurerm_linux_virtual_machine.linuxvm.public_ip_address},' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml" 
   }

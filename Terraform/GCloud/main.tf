@@ -45,7 +45,16 @@ resource "google_compute_instance" "GCP-VM" { #Create VM
     ssh-keys = "ala_klein:${tls_private_key.ssh.public_key_openssh}"
   }
 
+  provisioner "local-exec" { #Prepare file "Redeploy" to receive VM IP
+    command = "./dynamicRedeploy.sh"
+  }
+
+  provisioner "local-exec" { #Save VM IP to "Redepoy" file
+    command = "sed -i 's/{host}/${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip}/g' ./Redeploy"
+  }
+
   provisioner "local-exec" { #Provision application with Ansible
     command = "sleep 10; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '${google_compute_instance.GCP-VM.network_interface.0.access_config.0.nat_ip} ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/Ansible.yml"
   }
+
 }
