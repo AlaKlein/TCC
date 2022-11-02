@@ -21,3 +21,5 @@ id_rsa
 *.json
 *.pub
 
+Terraform/Azure/Redeploy
+Terraform/GCloud/Redeploy
