@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" { #Create a resource group
   name     = var.resource_group_name
   location = var.resource_group_location
@@ -15,6 +19,19 @@ resource "azurerm_subnet" "subnet" { #Create subnet
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_interface" "nic" { #Create network interface
+  name                = var.network_interface_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = var.network_interface_config_name
+    subnet_id                     = azurerm_subnet.subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.public_ip.id
+  }
 }
 
 resource "azurerm_public_ip" "public_ip" { #Create public IP
@@ -54,19 +71,6 @@ resource "azurerm_network_security_group" "nsg" { #Create Network Security Group
   }
 }
 
-resource "azurerm_network_interface" "nic" { #Create network interface
-  name                = var.network_interface_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  ip_configuration {
-    name                          = "myNicConfiguration"
-    subnet_id                     = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.public_ip.id
-  }
-}
-
 #Connect the security group to the network interface
 resource "azurerm_network_interface_security_group_association" "association" { 
   network_interface_id      = azurerm_network_interface.nic.id
@@ -91,9 +95,10 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   network_interface_ids = [azurerm_network_interface.nic.id]
   size                  = var.machine_size
   admin_username        = var.admin_username
+  depends_on            = [azurerm_network_interface_security_group_association.association]
 
   os_disk {
-    name                 = "myOsDisk"
+    name                 = var.os_disk_name
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }

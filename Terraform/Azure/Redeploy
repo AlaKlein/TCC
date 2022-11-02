@@ -1,1 +1,1 @@
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '4.228.80.165 ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/HelpDeskRedeploy.yml
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ala_klein -i '4.228.103.243 ,' --private-key ./id_rsa /mnt/c/Users/Klein/Desktop/TCC/HelpDeskRedeploy.yml
