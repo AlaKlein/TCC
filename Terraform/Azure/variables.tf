@@ -1,39 +1,21 @@
-variable "resource_group_name" {
-  type        = string
-  description = "RG name in Azure"
-}
+variable "resource_group_name" {  default = "my_rg" }
 
-variable "resource_group_location" {
-  type        = string
-  description = "RG location in Azure"
-}
+variable "resource_group_location" {  default = "Brazil South"  }
 
-variable "virtual_network_name" {
-  type        = string
-  description = "VNET name in Azure"
-}
+variable "virtual_network_name" { default = "vnet"  }
 
-variable "subnet_name" {
-  type        = string
-  description = "Subnet name in Azure"
-}
+variable "subnet_name" {  default = "subnet"  }
 
-variable "public_ip_name" {
-  type        = string
-  description = "Public IP name in Azure"
-}
+variable "public_ip_name" { default = "publicip"    }
 
-variable "network_security_group_name" {
-  type        = string
-  description = "NSG name in Azure"
-}
+variable "network_security_group_name" {  default = "nsg" }
 
-variable "network_interface_name" {
-  type        = string
-  description = "NIC name in Azure"
-}
+variable "network_interface_name" { default = "nic" }
 
-variable "linux_virtual_machine_name" {
-  type        = string
-  description = "Linux VM name in Azure"
-}
+variable "linux_virtual_machine_name" { default = "TerraformCentOS7"  }
+
+variable "machine_size" { default = "Standard_B2ms" }
+
+variable "admin_username" { default = "ala_klein"   }
+
+variable "cert_name" { default = "id_rsa"   }

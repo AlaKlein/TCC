@@ -79,7 +79,7 @@ resource "tls_private_key" "ssh_key" { #Create storage account for boot diagnost
 }
 
 resource "local_file" "id_rsa" { #Save Private Key to Directory
-  filename = "id_rsa"
+  filename = var.cert_name
   content=tls_private_key.ssh_key.private_key_pem
   file_permission = "0400"
 }
@@ -89,8 +89,8 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  size                  = "Standard_B2ms"
-  admin_username        = "ala_klein"
+  size                  = var.machine_size
+  admin_username        = var.admin_username
 
   os_disk {
     name                 = "myOsDisk"
@@ -106,7 +106,7 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {  #Create virtual machine
   }
 
     admin_ssh_key { #Add SSH Key to VM
-    username   = "ala_klein"
+    username   = var.admin_username
     public_key = tls_private_key.ssh_key.public_key_openssh
   }
 
