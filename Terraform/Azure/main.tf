@@ -67,25 +67,10 @@ resource "azurerm_network_interface" "nic" { #Create network interface
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "association" { #Connect the security group to the network interface
+#Connect the security group to the network interface
+resource "azurerm_network_interface_security_group_association" "association" { 
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "random_id" "randomId" { #Generate random text for a unique storage account name
-  keepers = { #Generate a new ID only when a new resource group is defined
-    resource_group = azurerm_resource_group.rg.name
-  }
-  byte_length = 8
-}
-
-resource "azurerm_storage_account" "storage" { #Create storage account for boot diagnostics
-  name                     = "diag${random_id.randomId.hex}"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
 }
 
 resource "tls_private_key" "ssh_key" { #Create storage account for boot diagnostics
