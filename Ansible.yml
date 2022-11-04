@@ -21,6 +21,44 @@
           - maven
           state: latest
 
+      - name: Create a Tomcat User
+        user:
+          name: tomcat
+ 
+      - name: Create a Tomcat Group
+        group:
+          name: tomcat
+      
+      - name: Create a Tomcat Directory
+        file:
+          path: /opt/tomcat10
+          owner: tomcat
+          group: tomcat
+          mode: 755
+          recurse: yes
+
+      - name: download & unarchive tomcat10 
+        unarchive:
+          src: https://archive.apache.org/dist/tomcat/tomcat-10/v10.0.21/bin/apache-tomcat-10.0.21.tar.gz
+          dest: /opt/tomcat10
+          remote_src: yes
+          extra_opts: [--strip-components=1]
+
+      - name: Change ownership of tomcat directory
+        file:
+          path: /opt/tomcat10
+          owner: tomcat
+          group: tomcat
+          mode: "u+rwx,g+rx,o=rx"
+          recurse: yes
+          state: directory
+ 
+      - name: Copy Tomcat service from local to remote
+        copy:
+          src: tomcat.service
+          dest: /etc/systemd/system/
+          mode: 0755
+ 
       - name: Clone a github repository
         git:
           repo: https://github.com/AlaKlein/Help-Desk.git
@@ -56,20 +94,6 @@
           state: import
           target: /usr/local/help-desk/dump-ticketsystem-202106231058.sql
 
-      - name: download tomcat server packages
-        get_url:
-          url: https://archive.apache.org/dist/tomcat/tomcat-10/v10.0.21/bin/apache-tomcat-10.0.21.tar.gz
-          dest: /usr/local
-
-      - name: extract tomcat packages
-        unarchive:
-          src: /usr/local/apache-tomcat-10.0.21.tar.gz
-          dest: /usr/local
-          remote_src: yes
-
-      - name: start tomcat services
-        shell: nohup /usr/local/apache-tomcat-10.0.21/bin/startup.sh
-
       - name: Configure Maven Server
         lineinfile:
           insertafter: <servers>
@@ -86,7 +110,14 @@
           line: <role rolename="manager-gui"/>
                 <role rolename="manager-script"/>
                 <user username="admin" password="admin" roles="manager-gui,manager-script" />
-          path: /usr/local/apache-tomcat-10.0.21/conf/tomcat-users.xml
+          path: /opt/tomcat10/conf/tomcat-users.xml
+
+      - name: Start and Enable Tomcat 10 on sever
+        systemd:
+          name: tomcat
+          state: started
+          enabled: yes
+          daemon_reload: true
 
       - name: Run maven tomcat deploy
         shell: mvn tomcat7:deploy

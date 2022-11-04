@@ -11,7 +11,7 @@ config.vm.provider :vmware_esxi do |esxi|
     esxi.esxi_disk_store = 'datastore1'
     
     #VM
-    esxi.guest_storage = [ 10, 20, { size: 30, datastore: 'datastore1' } ]
+    #esxi.guest_storage = [ 10, 20, { size: 30, datastore: 'datastore1' } ]
     esxi.guest_guestos = 'centos-64'
     esxi.guest_name = 'Vagrant-CentOS'
     esxi.guest_numvcpus = '2'
@@ -21,7 +21,7 @@ config.vm.provider :vmware_esxi do |esxi|
   end
 
   #Provision
-  config.vm.box = 'centos/7'
+  config.vm.box = "AlaKlein/CentOS-7.9"#'centos/7'
       config.vm.define 'centos' do |node|
        node.vm.provision "ansible" do |ansible|
           ansible.playbook = "/mnt/c/Users/Klein/Desktop/TCC/Ansible.yml"
